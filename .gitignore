@@ -1,0 +1,28 @@
+/build/
+/out/
+
+# Accidental in-source CMake products.
+/CMakeCache.txt
+/CMakeFiles/
+/Testing/
+/cmake_install.cmake
+/CTestTestfile.cmake
+/Makefile
+/compile_commands.json
+
+# Compiler artifacts that can otherwise leak into the source tree.
+*.obj
+*.o
+*.pdb
+*.ilk
+
+# Developer-local CMake preset overrides.
+/CMakeUserPresets.json
+
+# IDE state.
+/.vs/
+/.vscode/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb

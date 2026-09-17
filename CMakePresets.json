@@ -1,0 +1,140 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "vs2022",
+      "displayName": "Visual Studio 2022",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs2022",
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "PRINCIPIA_BUILD_PRESENTATION": "ON",
+        "PRINCIPIA_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "headless-base",
+      "hidden": true,
+      "cacheVariables": {
+        "BUILD_TESTING": "ON",
+        "PRINCIPIA_BUILD_PRESENTATION": "OFF",
+        "PRINCIPIA_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "headless-debug",
+      "displayName": "Portable headless Debug",
+      "description": "Generator-neutral Debug build without SDL presentation",
+      "inherits": "headless-base",
+      "binaryDir": "${sourceDir}/build/headless-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "headless-release",
+      "displayName": "Portable headless Release",
+      "description": "Generator-neutral Release build without SDL presentation",
+      "inherits": "headless-base",
+      "binaryDir": "${sourceDir}/build/headless-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "headless-sanitize",
+      "displayName": "Portable headless sanitizers",
+      "description": "ASan plus UBSan where supported; ASan-only on MSVC",
+      "inherits": "headless-base",
+      "binaryDir": "${sourceDir}/build/headless-sanitize",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "PRINCIPIA_ENABLE_SANITIZERS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "vs2022",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "vs2022",
+      "configuration": "Release"
+    },
+    {
+      "name": "headless-debug",
+      "configurePreset": "headless-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "headless-release",
+      "configurePreset": "headless-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "headless-sanitize",
+      "configurePreset": "headless-sanitize",
+      "configuration": "RelWithDebInfo"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "vs2022",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "vs2022",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "headless-debug",
+      "configurePreset": "headless-debug",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "headless-release",
+      "configurePreset": "headless-release",
+      "configuration": "Release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "headless-sanitize",
+      "configurePreset": "headless-sanitize",
+      "configuration": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    }
+  ]
+}

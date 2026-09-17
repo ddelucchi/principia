@@ -1,0 +1,101 @@
+@PACKAGE_INIT@
+
+include_guard(GLOBAL)
+
+include(CMakeFindDependencyMacro)
+if(NOT TARGET mp-units::mp-units)
+    find_dependency(mp-units 2.5 CONFIG)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/PrincipiaTargets.cmake")
+# FetchContent creates an in-tree alias whose implementation name cannot appear
+# in a relocatable export. Reattach the public installed dependency only after
+# find_dependency() has supplied its stable imported target.
+set_property(
+    TARGET Principia::Units
+    APPEND PROPERTY INTERFACE_LINK_LIBRARIES mp-units::mp-units
+)
+
+# MSVC's Debug and non-Debug standard-library/runtime ABIs are incompatible.
+# CMake otherwise falls back to any available imported configuration, which can
+# make a Release-only install configure successfully and fail later with LNK2038.
+# Select compatible configurations explicitly and reject an incomplete package
+# for every configuration the consuming generator can build.
+if(MSVC)
+    set(
+        _principia_binary_targets
+        Principia::State
+        Principia::Ontology
+        Principia::Operators
+        Principia::Scheduler
+        Principia::Solvers
+        Principia::Serialization
+        Principia::Replay
+        Principia::Progression
+        Principia::Game
+    )
+    get_target_property(
+        _principia_installed_configurations
+        Principia::Game
+        IMPORTED_CONFIGURATIONS
+    )
+    set(_principia_consumer_configurations ${CMAKE_CONFIGURATION_TYPES})
+    if(NOT _principia_consumer_configurations AND CMAKE_BUILD_TYPE)
+        set(_principia_consumer_configurations ${CMAKE_BUILD_TYPE})
+    endif()
+    foreach(_principia_configuration IN LISTS _principia_consumer_configurations)
+        string(TOUPPER "${_principia_configuration}" _principia_configuration_upper)
+        if(_principia_configuration_upper STREQUAL "DEBUG")
+            set(_principia_compatible_configurations DEBUG)
+        elseif(_principia_configuration_upper STREQUAL "RELEASE")
+            set(_principia_compatible_configurations RELEASE)
+        elseif(_principia_configuration_upper STREQUAL "RELWITHDEBINFO")
+            set(_principia_compatible_configurations RELWITHDEBINFO RELEASE)
+        elseif(_principia_configuration_upper STREQUAL "MINSIZEREL")
+            set(_principia_compatible_configurations MINSIZEREL RELEASE)
+        else()
+            continue()
+        endif()
+
+        set(_principia_has_compatible_configuration FALSE)
+        foreach(_principia_candidate IN LISTS _principia_compatible_configurations)
+            if(_principia_candidate IN_LIST _principia_installed_configurations)
+                set(_principia_has_compatible_configuration TRUE)
+                break()
+            endif()
+        endforeach()
+        if(NOT _principia_has_compatible_configuration)
+            message(
+                FATAL_ERROR
+                "Principia has no MSVC-ABI-compatible installed artifact for "
+                "consumer configuration '${_principia_configuration}'. Installed "
+                "configurations: ${_principia_installed_configurations}. Install "
+                "Principia's matching configuration into the same prefix."
+            )
+        endif()
+    endforeach()
+
+    foreach(_principia_target IN LISTS _principia_binary_targets)
+        set_property(TARGET ${_principia_target} PROPERTY MAP_IMPORTED_CONFIG_DEBUG Debug)
+        set_property(TARGET ${_principia_target} PROPERTY MAP_IMPORTED_CONFIG_RELEASE Release)
+        set_property(
+            TARGET ${_principia_target}
+            PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release
+        )
+        set_property(
+            TARGET ${_principia_target}
+            PROPERTY MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel Release
+        )
+    endforeach()
+
+    unset(_principia_binary_targets)
+    unset(_principia_installed_configurations)
+    unset(_principia_consumer_configurations)
+    unset(_principia_configuration)
+    unset(_principia_configuration_upper)
+    unset(_principia_compatible_configurations)
+    unset(_principia_candidate)
+    unset(_principia_has_compatible_configuration)
+    unset(_principia_target)
+endif()
+check_required_components(Principia)
