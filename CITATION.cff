@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use or discuss this software in research, please cite this repository."
+title: "Principia"
+type: software
+authors:
+  - family-names: "Delucchi"
+    given-names: "Daxx"
+abstract: "Deterministic C++23 physics runtime with typed units, solver contracts, replay, and conservation accounting"
+version: 0.1.0
+date-released: 2026-09-17
+keywords:
+  - "physics"
+  - "simulation"
+  - "c++"
+  - "determinism"
