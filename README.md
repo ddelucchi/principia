@@ -1,111 +1,120 @@
 # Principia
 
-Principia is the executable foundation of a **Reality Engine** for a 2D
-open-world sandbox. Game objects observe and intervene in one shared physical
-state; progress means gaining access to increasingly upstream causes rather than
-receiving larger scripted effects.
+Principia is a deterministic C++23 physics runtime for a programmable 2D physical world. The project is built around explicit physical state, typed units, solver contracts, reproducible scheduling, conservation accounting, replay, and inspection.
 
-The current foundation proves two reality tests:
+## Status
 
-- **Reality Test 001:** player, rock, and sand share one operated gravity field,
-  typed materials, mechanical response, collision geometry, and a multi-channel
-  rigid wall. The presentation can reveal the same field and toggle the same
-  serialized gravity operator that drives simulation.
-- **Reality Test 002:** swept frictionless disc contact prevents tunneling,
-  applies material restitution, records canonical events and boundary/internal
-  impulses, and transfers lost kinetic energy into an explicit unresolved-energy
-  flux.
+The current repository is a foundation release, not a claim to implement a complete universe simulator.
 
-The supporting substrate includes:
+Implemented and exercised today:
 
-- C++23 and `mp-units` physical quantities at API boundaries;
-- canonical particle state `(position, momentum, rest mass)` and controlled,
-  revisioned mutation;
-- distinct ontology, execution, software, resolution, and learning graphs;
-- a kick/contact-drift/kick Newtonian solver with executable validity,
-  constraints, conservation, source stamps, and step-doubling error estimates;
-- validated deterministic scheduler and exact causal-permission contracts;
-- canonical Snapshot/Replay V1 plus complete atomic Foundation Checkpoint V2;
-- shared read-only inspection data for tools and SDL3/SDL_GPU presentation;
-- strict Debug/Release tests for malformed, stale, non-finite, truncation,
-  convergence, conservation, determinism, and package-consumer cases.
+- canonical particle state with position, momentum, rest mass, material, and constraints
+- `mp-units` physical quantities at public API boundaries
+- gravity fields and a Newtonian particle solver
+- swept frictionless disc contact against static boundaries and other particles
+- material restitution and mechanical-response registries
+- deterministic solver dependency graphs and coupled-component detection
+- explicit validity, step-control, and numeric-policy contracts
+- conservation and unresolved-energy accounting
+- snapshot, replay, and checkpoint persistence
+- progression and causal-permission graphs
+- headless inspection tools
+- SDL3/SDL_GPU presentation code for interactive reality tests
 
-Later thermal, phase, fluid, electromagnetic, relativistic, curved-spacetime,
-and quantum models are ontology metadata only. They are not claimed as implemented.
+Thermal, fluid, electromagnetic, relativistic, curved-spacetime, and quantum entries in the ontology are extension metadata unless corresponding executable models are added. They are not presented here as implemented solvers.
+
+## Reality tests
+
+### Reality Test 001
+
+A player, rock, and sand object share one authoritative gravity field, typed materials, collision geometry, and a rigid wall. The same field state can be inspected by tools and presentation code.
+
+### Reality Test 002
+
+Swept frictionless disc contact prevents simple tunneling, applies material restitution, records canonical contact events and impulses, and transfers unresolved kinetic-energy loss into an explicit flux channel.
+
+## Architecture
+
+The code is divided by physical responsibility rather than by presentation feature:
+
+- `reality/core` - stable identifiers, schemas, deterministic primitives
+- `reality/units` and `reality/math` - dimensional quantities and vectors
+- `reality/state` and `reality/world` - authoritative state channels and world objects
+- `reality/fields` and `reality/operators` - field definitions and law application
+- `reality/scheduler` - dependency analysis, contracts, coupled solver components
+- `reality/solvers` - executable dynamics and contact solvers
+- `reality/conservation` - balance and unresolved-flux accounting
+- `reality/serialization` and `reality/replay` - persistence and deterministic reconstruction
+- `game` - progression and reality-test composition
+- `presentation` - SDL presentation only; simulation authority remains CPU-side
+- `tools` - theory-graph and world-inspection utilities
+
+See [docs/architecture.md](docs/architecture.md), [docs/game_design.md](docs/game_design.md), and [docs/persistence.md](docs/persistence.md).
+
+## Determinism and failure policy
+
+Principia treats determinism as part of the simulation contract. Solver descriptors declare state access, theory identity, validity revision, integrator family, step-control policy, and numeric policy. Ambiguous write conflicts, invalid state, non-finite input, unsupported contact configurations, and persistence inconsistencies are rejected explicitly rather than silently repaired.
+
+The test suite covers scheduler topology, solver contracts, persistence edge cases, replay, checkpointing, progression permissions, contact behavior, and the two foundation reality tests.
 
 ## Build and test
 
-Requirements are CMake 3.25+, a C++23 compiler, and Git for the default pinned
-dependency fetch. On Windows with Visual Studio 2022:
+Requirements:
 
-```powershell
-cmake --preset vs2022
-cmake --build --preset debug
-ctest --preset debug
-```
+- CMake 3.25+
+- a C++23 compiler
+- Git for pinned dependency fetches
 
-Use the `release` build/test presets for optimized verification.
+Portable headless Debug:
 
-For a generator-neutral build without SDL presentation:
-
-```console
+```bash
 cmake --preset headless-debug
 cmake --build --preset headless-debug
 ctest --preset headless-debug
 ```
 
-`headless-release` is the optimized equivalent. `headless-sanitize` enables ASan
-and UBSan with supported GCC/Clang toolchains and ASan with MSVC. The installed
-MSVC environment may require its separate AddressSanitizer runtime component.
+Portable headless Release:
 
-Dependency revisions are pinned and fetched by default. Set
-`PRINCIPIA_USE_SYSTEM_DEPENDENCIES=ON` to prefer compatible installed packages,
-or `PRINCIPIA_FETCH_DEPENDENCIES=OFF` to require all dependencies to be supplied.
-Authoritative simulation remains CPU-side; only the presentation target links
-SDL3.
-
-## Run
-
-The headless inspector executes one second of Reality Test 001 and prints the
-committed physical/constitutive view:
-
-```powershell
-build\headless-debug\tools\Debug\principia_inspect.exe
+```bash
+cmake --preset headless-release
+cmake --build --preset headless-release
+ctest --preset headless-release
 ```
 
-The interactive presentation is built by `vs2022`:
+ASan/UBSan where supported:
+
+```bash
+cmake --preset headless-sanitize
+cmake --build --preset headless-sanitize
+ctest --preset headless-sanitize
+```
+
+On Visual Studio 2022, the `vs2022`, `debug`, and `release` presets build the SDL presentation as well.
+
+## Inspect the world
+
+After a headless Debug build:
+
+```bash
+./build/headless-debug/tools/principia_inspect
+```
+
+On Windows with the Visual Studio preset:
 
 ```powershell
 build\vs2022\presentation\Debug\principia_demo.exe
 ```
 
-Controls: `Space` pauses, `N` advances one tick while paused, `F` toggles the
-field instrument, `G` removes or installs the gravity operator, `R` resets, and
-`Escape` exits. `--frames N` runs a finite smoke test.
+Interactive controls are documented in the presentation source and original design notes.
 
-## Install as a CMake package
+## Package consumption
 
-```powershell
-cmake --install build\vs2022 --config Debug --prefix C:\path\to\principia
-cmake --install build\vs2022 --config Release --prefix C:\path\to\principia
-```
+Principia installs CMake package targets such as `Principia::Game`, `Principia::Solvers`, and `Principia::Units`. The repository includes a package-consumer test so installation is treated as part of the public interface rather than an afterthought.
 
-Installed consumers use `find_package(Principia 0.1 CONFIG REQUIRED)` and link
-names such as `Principia::Game`, `Principia::Solvers`, or `Principia::Units`.
-`mp-units` remains an explicit package dependency; developer warning and
-sanitizer flags do not leak to consumers. A system-supplied `mp-units` must use
-the same public feature configuration as this build (`std::format`,
-natural units, contracts, and CRTP mode); the pinned dependency path supplies
-that configuration automatically. MSVC Debug and non-Debug runtime ABIs are
-incompatible, so a normal Visual Studio consumer needs both configurations
-installed into the same prefix. A Release-only consumer may instead configure
-with `CMAKE_CONFIGURATION_TYPES=Release` (or use a single-config Release
-generator). `find_package(Principia)` rejects missing ABI-compatible artifacts
-during configuration rather than allowing a later linker failure.
+## Scope
 
-## Constitutions
+This is research-oriented systems software. It is not a safety-critical simulator, a certified engineering analysis package, or evidence that ontology entries without executable solvers have been physically validated.
 
-- [Architecture](docs/architecture.md)
-- [Game design](docs/game_design.md)
-- [Persistence and replay](docs/persistence.md)
+## License
 
+Source is publicly viewable for portfolio and technical evaluation. See [LICENSE](LICENSE).
