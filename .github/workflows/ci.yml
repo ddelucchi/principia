@@ -35,3 +35,22 @@ jobs:
         run: cmake --build --preset headless-sanitize
       - name: Test
         run: ctest --preset headless-sanitize
+
+  package-consumer:
+    name: Install and consume package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure release package
+        run: cmake --preset headless-release
+      - name: Build release package
+        run: cmake --build --preset headless-release
+      - name: Install
+        run: cmake --install build/headless-release --prefix "$PWD/build/install"
+      - name: Configure external consumer
+        run: >-
+          cmake -S tests/package_consumer -B build/package-consumer
+          -DCMAKE_PREFIX_PATH="$PWD/build/install"
+          -DCMAKE_BUILD_TYPE=Release
+      - name: Build external consumer
+        run: cmake --build build/package-consumer --parallel
