@@ -1,0 +1,32 @@
+add_library(
+    principia_solvers
+    STATIC
+        src/frictionless_contact.cpp
+        src/frictionless_contact_system.cpp
+        src/newtonian_particle_solver.cpp
+)
+add_library(Principia::Solvers ALIAS principia_solvers)
+
+target_include_directories(
+    principia_solvers
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+target_link_libraries(
+    principia_solvers
+    PUBLIC
+        Principia::Conservation
+        Principia::Boundaries
+        Principia::Diagnostics
+        Principia::Fields
+        Principia::Math
+        Principia::Materials
+        Principia::Ontology
+        Principia::Scheduler
+        Principia::Spacetime
+        Principia::State
+        Principia::Units
+        Principia::World
+    PRIVATE
+        $<BUILD_INTERFACE:Principia::ProjectOptions>
+)
