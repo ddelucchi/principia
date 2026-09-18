@@ -57,6 +57,12 @@ Principia treats determinism as part of the simulation contract. Solver descript
 
 The test suite covers scheduler topology, solver contracts, persistence edge cases, replay, checkpointing, progression permissions, contact behavior, and the two foundation reality tests.
 
+## Verification
+
+See [VERIFICATION.md](VERIFICATION.md) for the evidence hierarchy behind determinism, replay/persistence, solver-contract, sanitizer, and package-consumer checks, together with the physical-validation claims those tests deliberately do not make.
+
+GitHub Actions is configured for Linux/Windows headless builds, sanitizers, and external package consumption. The account currently reports workflow startup failures before job creation, so no hosted green-CI claim is made; the clone-local presets below are the reproducible verification path.
+
 ## Build and test
 
 Requirements:
